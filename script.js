@@ -2,16 +2,30 @@
 const imageContainer = document.getElementById("image-container");
 const loader = document.getElementById("loader");
 
+let ready = false;
+let imagesLoaded = 0;
+let totalImages = 0;
 let photosArray = [];
 
 // Unsplash API
-const count = 10;
+const count = 30;
 const apiKey = "NnyALQ5H7aCftjyjp7AAofmzBp5MFLmkYzS1VETt3pk";
 const apiUrl = `https://api.unsplash.com/photos/random/?client_id=${apiKey}&count=${count}`;
 
+// Check if all images were loaded
+const imageLoaded = () => {
+    imagesLoaded++;
+    console.log(imagesLoaded);
+    if (imagesLoaded === totalImages) {
+        ready = true;
+        loader.hidden = true;
+        console.log("ready =", ready);
+    }
+};
+
 // Helper Function to Set attributes on DOM elements
 const setAttributes = (element, attributes) => {
-    console.log(attributes);
+    // console.log(element, attributes);
     for (const key in attributes) {
         element.setAttribute(key, attributes[key]);
     }
@@ -19,6 +33,10 @@ const setAttributes = (element, attributes) => {
 
 // Create Elements for Links & Photos, Add to DOM
 const displayPhotos = () => {
+    imagesLoaded = 0;
+    totalImages = photosArray.length;
+    console.log("total images", totalImages);
+
     // Run function for each object in photosArray
     photosArray.forEach((photo) => {
         // Create <a> to link to Unsplash
@@ -41,6 +59,9 @@ const displayPhotos = () => {
             title: photo.alt_description,
         });
 
+        // Event Listener, check when each is finished loading
+        img.addEventListener("load", imageLoaded);
+
         // Put <img> inside <a> then puth both inside imageContainer Element
         item.appendChild(img);
         imageContainer.appendChild(item);
@@ -57,5 +78,19 @@ const getPhotos = async () => {
         console.log(error);
     }
 };
+
+// Check to see if scrolling near bottom of page, Load More Photos
+window.addEventListener("scroll", () => {
+    // console.log("scrolled");
+    if (
+        window.innerHeight + window.scrollY >=
+            document.body.offsetHeight - 1000 &&
+        ready
+    ) {
+        ready = false;
+        getPhotos();
+        // console.log("load more");
+    }
+});
 
 getPhotos();
